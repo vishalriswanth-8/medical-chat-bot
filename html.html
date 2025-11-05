@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediBot Chat</title>
+    <style>
+        /* WhatsApp-Style CSS */
+        :root {
+            --whatsapp-green: #075E54;
+            --whatsapp-light-green: #128C7E;
+            --chat-background: #ECE5DD; /* Light canvas/tile background */
+            --user-bubble: #DCF8C6; /* Light green for user messages */
+            --bot-bubble: #FFFFFF; /* White/off-white for bot messages */
+            --input-bg: #F0F0F0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--chat-background);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            height: 95vh; /* Larger height for app feel */
+            background-color: var(--chat-background);
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+            border-radius: 0; /* Full screen look */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* On desktop, give it a subtle shadow */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            max-height: 95vh;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+        }
+
+        .chat-header {
+            background-color: var(--whatsapp-green);
+            color: white;
+            padding: 15px 20px;
+            text-align: left;
+            font-size: 1.1em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        
+        .chat-header .icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .chat-box {
+            flex-grow: 1;
+            padding: 20px 10px;
+            overflow-y: auto;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><circle fill="%23e5ddd5" cx="5" cy="5" r="5" fill-opacity="0.5" /></svg>'); /* Simple repeating background */
+            background-color: #E5DDD5; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            margin: 5px 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            max-width: 85%;
+            word-wrap: break-word;
+            position: relative;
+            box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+        }
+
+        .message.user {
+            background-color: var(--user-bubble);
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+            
+        }
+
+        .message.bot {
+            background-color: var(--bot-bubble);
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+
+        .input-area {
+            display: flex;
+            padding: 10px;
+            background-color: var(--input-bg);
+            align-items: center;
+        }
+
+        .input-area input {
+            flex-grow: 1;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+            background-color: white;
+            margin-right: 8px;
+        }
+
+        .input-area button {
+            background-color: var(--whatsapp-light-green);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s;
+        }
+        .input-area button:hover {
+            background-color: #0c9c8a;
+        }
+        
+        /* Modal remains the same for functionality */
+        #user-id-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content input, .modal-content button {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .modal-content button {
+            background-color: var(--whatsapp-light-green);
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="user-id-modal">
+        <div class="modal-content">
+            <h2>Welcome to MediBot!</h2>
+            <p>Please enter your user ID to begin chatting.</p>
+            <input type="text" id="user-id-input" placeholder="Enter User ID" required>
+            <button onclick="setUserId()">Start Chat</button>
+        </div>
+    </div>
+
+    <div class="container" style="display:none;">
+        <div class="chat-header">
+            <span class="icon">🩺</span> Doc Mithra
+        </div>
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Type a message...">
+            <button id="send-btn">➔</button>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = "123";
+        // --- IMPORTANT: REPLACE WITH YOUR NGROK URL and ensure /chat is included ---
+        const SERVER_URL = "http://10.221.107.229:5000/chat"; 
+        
+        let userId = null;
+        let conversationHistory = [];
+        
+        const chatBox = document.getElementById("chat-box");
+        const userInput = document.getElementById("user-input");
+        const sendBtn = document.getElementById("send-btn");
+        const modal = document.getElementById("user-id-modal");
+        const mainContainer = document.querySelector(".container");
+
+        function setUserId() {
+            const input = document.getElementById("user-id-input");
+            if (input.value.trim()) {
+                userId = input.value.trim();
+                modal.style.display = 'none';
+                mainContainer.style.display = 'flex';
+                // Add an initial welcome message
+                addMessage("Hello there! Welcome back. How are you feeling today? 😊", 'bot');
+                userInput.focus();
+            } else {
+                alert("Please enter a user ID.");
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            messageElement.textContent = text;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            userInput.value = '';
+
+            conversationHistory.push({ "role": "user", "content": message });
+
+            try {
+                const response = await fetch(SERVER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        api_key: API_KEY,
+                        user_id: userId,
+                        message: message,
+                        history: conversationHistory
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const botResponse = data.response;
+                
+                addMessage(botResponse, 'bot');
+                conversationHistory.push({ "role": "assistant", "content": botResponse });
+
+            } catch (error) {
+                console.error("Error:", error);
+                addMessage("Sorry, I can't connect to the server right now. Is the server running? 😞", 'bot');
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+
+</body>
+</html>

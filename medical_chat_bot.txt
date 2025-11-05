@@ -1,0 +1,49 @@
+eval qn
+Q) So, what problem are you solving, and how does your solution address it?
+   	emmotional connect (This is our multilingual feature, which directly addresses the language barrier.)
+Q)What's the technology behind this, and what makes it innovative?
+   	WhatsApp integration, Fine tunning, RAG.
+Q)Who benefits from this, and how can this project grow beyond the hackathon?
+ 	Approach NGO and Government portal and pharmaceutical companies
+Q)Future scope?
+	integrating real time api for accurate data.
+
+
+special features:
+1. whatsapp integration
+2. history for user
+3. data analysis
+4.multi language
+5. process pdf and images
+
+
+
+ngrok http 5000
+
+$response = Invoke-RestMethod -Uri http://127.0.0.1:5000/chat -Method Post -ContentType "application/json" -Body '{"api_key": "123", "user_id": "user123", "message": "Hi there, I have a headache."}'
+Write-Host $response.response
+
+
+
+
+$url = " https://b78521f225a5.ngrok-free.app"
+$response = Invoke-RestMethod -Uri "$url/chat" -Method Post -ContentType "application/json" -Body '{"api_key": "123", "user_id": "hi", "message": "Hi there, I have a headache."}'
+Write-Host $response.response
+
+
+emberdding modal convert data to vector data(numerical representation)
+FAISS is facebook AI Similar search used for search vector data and return most related vector data
+
+
+Here is the equivalent command for PowerShell to test the chat endpoint:
+PowerShell
+Invoke-WebRequest -Method Post -Uri http://127.0.0.1:5000/chat -Headers @{"Content-Type"="application/json"} -Body '{"api_key": "123", "user_id": "user123", "message": "What is the most common cause of the common cold?"}'
+
+
+And here is the command to test the save_medical_info endpoint:
+PowerShell
+Invoke-WebRequest -Method Post -Uri http://127.0.0.1:5000/save_medical_info -Headers @{"Content-Type"="application/json"} -Body '{"api_key": "123", "user_id": "user123", "medical_info": {"allergies": ["Pollen"], "conditions": ["Asthma"]}}'
+
+
+to get full response,
+Invoke-WebRequest -Method Post -Uri http://127.0.0.1:5000/chat -Headers @{"Content-Type"="application/json"} -Body '{"api_key": "123", "user_id": "user123", "message": "What is the most common cause of the common cold?"}' | Select-Object -ExpandProperty Content
